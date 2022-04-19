@@ -3,6 +3,7 @@
 (in-package #:webapp-demo)
 
 (defparameter *server* nil)
+(djula:add-template-directory (concatenate 'string (sb-posix:getcwd) "/templates/"))
 
 (defun start-web-server (port)
   (setf *server* (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port port))))
@@ -24,9 +25,8 @@
 
 (defmacro render-to-template (template-filename &rest variables)
   `(with-output-to-string (s)
-     (let ((template-name (intern ,template-filename)))
-       (defparameter template-name (djula:compile-template* ,template-filename))
-       (djula:render-template* template-name s ,@variables))))
+     (defparameter template-name (djula:compile-template* ,template-filename))
+     (djula:render-template* template-name s ,@variables)))
 
 
 (defun request-get (name &optional (default nil))
@@ -35,11 +35,11 @@
 
 
 (defun main (argv)
-  (setup-routes)
   (start-web-server 5050)
   (sb-thread:join-thread (find-if
                           (lambda (th)
-                            (search "hunchentoot-listener" (sb-thread:thread-name th))))
+                            (search "hunchentoot-listener" (sb-thread:thread-name th)))
+                          (sb-thread:list-all-threads))))
 
 
 ;;; Sample usages
